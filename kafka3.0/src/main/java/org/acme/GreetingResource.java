@@ -5,6 +5,11 @@ import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 
+
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
+
 @Path("/kafka")
 public class GreetingResource {
 
@@ -18,7 +23,11 @@ public class GreetingResource {
             return Response.status(Response.Status.BAD_REQUEST).entity("Message cannot be empty").build();
         }
 
+         final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
+
+//        scheduler.scheduleAtFixedRate(() -> {
         producer.sendMessage(message);  // Send the message to Kafka
+//        }, 0, 5, TimeUnit.SECONDS);
         return Response.ok("Message sent: " + message).build();
     }
 }
