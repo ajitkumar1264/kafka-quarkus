@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WebSocket and Kafka Example</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f4f4f4;
+        }
+        h1 {
+            color: #333;
+        }
+        #messageForm {
+            margin-bottom: 20px;
+        }
+        #messages {
+            background: #fff;
+            border: 1px solid #ccc;
+            padding: 10px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .message {
+            padding: 5px;
+            border-bottom: 1px solid #ddd;
+        }
+    </style>
+</head>
+<body>
+
+<h1>WebSocket and Kafka Real-Time Messaging</h1>
+
+<div id="messageForm">
+    <input type="text" id="messageInput" placeholder="Type your message here..." required>
+    <button id="sendButton">Send Message</button>
+</div>
+
+<div id="messages">
+    <h3>Received Messages:</h3>
+    <div id="messageList"></div>
+</div>
+
+<script>
+    const socket = new WebSocket('ws://localhost:8080/ws/messages');
+
+    // Handle WebSocket events
+    socket.onopen = function() {
+        console.log('WebSocket connection established');
+    };
+
+    socket.onmessage = function(event) {
+        const message = event.data;
+        console.log('Received message: ' + event);
+        displayMessage(message);
+    };
+
+    socket.onclose = function() {
+        console.log('WebSocket connection closed');
+    };
+
+    socket.onerror = function(error) {
+        console.error('WebSocket error: ' + error.message);
+    };
+
+    // Function to display received messages
+    function displayMessage(message) {
+        const messageList = document.getElementById('messageList');
+        const messageDiv = document.createElement('div');
+        messageDiv.className = 'message';
+        messageDiv.textContent = message;
+        messageList.appendChild(messageDiv);
+    }
+
+    // Send message to Kafka via REST API
+    document.getElementById('sendButton').onclick = function() {
+        const messageInput = document.getElementById('messageInput');
+        const message = messageInput.value.trim();
+
+        if (message) {
+            fetch(`http://localhost:8080/kafka/send?message=${encodeURIComponent(message)}`, {
+                method: 'POST'
+            })
+            .then(response => {
+                if (response.ok) {
+                    console.log('Message sent: ' + message);
+                    messageInput.value = ''; // Clear input field
+                } else {
+                    console.error('Failed to send message');
+                }
+            })
+            .catch(error => console.error('Error sending message:', error));
+        } else {
+            alert('Please enter a message.');
+        }
+    };
+</script>
+
+</body>
+</html>
